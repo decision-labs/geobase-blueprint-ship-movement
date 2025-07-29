@@ -1,0 +1,34 @@
+{
+	"chokepoint": {
+		"x": 0,
+		"y": 0,
+		"width": 128,
+		"height": 128,
+		"anchorY": 128,
+		"mask": false
+	},
+	"port": {
+		"x": 128,
+		"y": 0,
+		"width": 128,
+		"height": 128,
+		"anchorY": 128,
+		"mask": false
+	},
+	"anchorage": {
+		"x": 256,
+		"y": 0,
+		"width": 128,
+		"height": 128,
+		"anchorY": 128,
+		"mask": false
+	},
+	"siding": {
+		"x": 384,
+		"y": 0,
+		"width": 128,
+		"height": 128,
+		"anchorY": 128,
+		"mask": false
+	}
+}
