@@ -3,11 +3,11 @@
  A Geobase quickstart blueprint application showing animated ship trails. 
 
  <picture>
-  <img alt="Blueprint screenshot showing ship trails" src="geobase/screenshots/screenshot_big_picture.jpg">
+  <img alt="Blueprint screenshot showing ship trails" src="geobase/media/screenshot_big_picture.jpg">
 </picture>
 
  <picture>
-  <img alt="Blueprint screenshot showing h3 hex aggregate query result" src="geobase/screenshots/screenshot_h3.jpg">
+  <img alt="Blueprint screenshot showing h3 hex aggregate query result" src="geobase/media/screenshot_h3.jpg">
 </picture>
 
 
@@ -17,17 +17,17 @@
 1. [What's included](#whats-included)
 2. [Prerequisites](#prerequisites)
 3. [Development](#development)
-3.1 [Migration](#migration)
+     1. [Migration](#migration)
 4. [Deployment](#deployment)
 5. [Video](#video)
 6. [Further Info](#further-info)
-7. [Customization](#customization)
+7. [Adapting](#adapting)
 
 ## What's included
 
-This is a Next.JS React and Geobase application that shows animated ship movements on a map. It uses the powerful Postgres extensions MobilityDb, H3 and PostGIS built into Geobase. The application can also interactively query the data to calculate aggregate statistics.  Using Geobase, with very minimal editing, a user can quickly get started loading, processing and viewing dynamic temportal geospatial data. 
+This is a Next.JS React and Geobase application that shows animated ship movements on a map. It uses the powerful PostgreSQL extensions MobilityDb, H3 and PostGIS built into Geobase. The application can also interactively query the data to calculate aggregate statistics.  Using Geobase, with very minimal editing, a user can quickly get started loading, processing and viewing dynamic temportal geospatial data. 
 
-AIS stands for Automatic Identification System. It is the location tracking system for sea vessels. It's like GPS but with lots of other additional data fields. There is a dataset already uploaded to Geobase ready for this quickstart. The data is processed, imported and made available as vector tiles. The vector tiles are then displayed using Deck.gl on a Maplibre map. The user can draw a polygon on the map and a h3 hex map showing statistical information about how many ship events there were in each hex is shown.   
+AIS stands for Automatic Identification System. It is the location tracking system for sea vessels. It's like GPS but with lots of other additional data fields. There is a dataset already uploaded to Geobase ready for this quickstart. This quickstart imports, processes and makes available the data as temporal vector tiles. The vector tiles are then displayed using Deck.gl on a Maplibre map. The user can draw a polygon on the map and results in hexagons showing data about how much ship activities there are in each area.   
 
 ## Prerequisites
 
@@ -41,7 +41,7 @@ Once you're Geobase project is created, you can manually download, clone or crea
 
 ### Migration
 
-First you will need to load and process the data for the application.  You can run SQL from within the Geobase application, or you connect from your own. Geobase has uploaded a sample of AIS shipping data in CSV format from 2021. 
+First you will need to load and process the data for the application.  You can run SQL from within the Geobase application, or you connect from your own. Geobase has uploaded a sample of AIS shipping data in CSV format from 2021 for you to get going quickly.
 
 #### Option 1: Quickstart via the studio
 
@@ -53,7 +53,10 @@ First you will need to load and process the data for the application.  You can r
 
 See the video below for a walkthrough:
 
-TODO VIDEO
+
+<video controls>
+<source src="geobase/media/select_ship_quickstart.mp4" type="video/mp4">
+</video>
 
 
 #### Option 2: Using `psql` version compatible with your Geobase project (postgres 14 or 15)
@@ -122,14 +125,16 @@ pnpm dev
 
 Open [http://localhost:5173](http://localhost:5173) with your browser to see the blueprint in action. 
 
-You should see something like this. Click the area names. Big Picture shows the full view. You can start, stop the animation using the timeline control below the map.
+You should see something like this animation. Click on the area names to move the map to different areas.  "Big Picture" shows the full view. You can start and stop the animation using the timeline control below the map.
+
  <picture>
-  <img alt="Blueprint animation of running application showing ship trails" src="geobase/screenshots/animation.gif">
+  <img alt="Blueprint animation of running application showing ship trails" src="geobase/media/animation.gif">
 </picture>
 
 You can draw a polygon to query the data to see the activity of the ships as hexagons on the map. Click the "Draw to view activity" button and start drawing a polygon on the map, release the mouse and the hexagaons should appear. You can clear these the hexagons by pressing ESC or by clicking the "Clear Hexagons" button.  
+
  <picture>
-  <img alt="Blueprint animation of running application showing the h3 query" src="geobase/screenshots/ships_query.gif">
+  <img alt="Blueprint animation of running application showing the h3 query" src="geobase/media/ships_query.gif">
 </picture>
 
 ## Deployment
@@ -160,9 +165,9 @@ The database migration sets up the following tables:
 
 ### RLS (Row Level Security)
 
-Row Level Security  is implemented for the tables to ensure data privacy and access control. As both tables are not going to be directly queried by users and are instead accessed via functions, we should enable RLS on them with no policies set.
+Row Level Security  is implemented for the tables to ensure data privacy and access control. As both tables are not going to be directly queried by users and are instead accessed via functions, the quickstart enables RLS on them but with no policies set.
 
-1. `aisinputfiltered`, `ships`:
+`aisinputfiltered`, `ships`:
 
     - RLS enabled, with no policies set.
     - Accessed via the two functions (see above)
@@ -170,6 +175,8 @@ Row Level Security  is implemented for the tables to ensure data privacy and acc
 
 
 ## Video
+
+TODO Youtube Video
 
 [🎥 Take a look at the blueprint overview video](https://www.youtube.com/watch?v=TODO)
 
