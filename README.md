@@ -23,7 +23,7 @@
 
 ## What's included
 
-This is a Next.JS React and Geobase application that shows animated ship movements on a map. It uses the powerful PostgreSQL extensions MobilityDb, H3 and PostGIS built into Geobase. The application can also interactively query the data to calculate aggregate statistics.  Using Geobase, with very minimal editing, a user can quickly get started loading, processing and viewing dynamic temportal geospatial data. 
+This is a Next.JS React and Geobase application that shows animated ship movements on a map. It uses the powerful PostgreSQL extensions MobilityDb, H3 and PostGIS built into Geobase. The application can also interactively query the data to calculate aggregate statistics.  Using Geobase, with very minimal editing, a user can quickly get started loading, processing and viewing dynamic temporal geospatial data. 
 
 AIS stands for Automatic Identification System. It is the location tracking system for sea vessels. It's like GPS but with lots of other additional data fields. There is a dataset already uploaded to Geobase ready for this quickstart. This quickstart imports, processes and makes available the data as temporal vector tiles. The vector tiles are then displayed using Deck.gl on a Maplibre map. The user can draw a polygon on the map and results in hexagons showing data about how much ship activities there are in each area.   
 
@@ -127,7 +127,7 @@ You should see something like this animation. Click on the area names to move th
   <img alt="Blueprint animation of running application showing ship trails" src="geobase/media/animation.gif">
 </picture>
 
-You can draw a polygon to query the data to see the activity of the ships as hexagons on the map. Click the "Draw to view activity" button and start drawing a polygon on the map, release the mouse and the hexagaons should appear. You can clear these the hexagons by pressing ESC or by clicking the "Clear Hexagons" button.  
+You can draw a polygon to query the data to see the activity of the ships as hexagons on the map. Click the "Draw to view activity" button and start drawing a polygon on the map, release the mouse and the hexagons should appear. You can clear these the hexagons by pressing ESC or by clicking the "Clear Hexagons" button.  
 
  <picture>
   <img alt="Blueprint animation of running application showing the h3 query" src="geobase/media/ships_query.gif">
@@ -186,7 +186,7 @@ The AIS data is from 2021. Historical AIS data is provided by the Danish Maritim
 ### MobilityDB & PostGIS
 
 [MobilityDB](https://mobilitydb.com/) is an extension of PostgreSQL and PostGIS that provides temporal types, for example a moving vehicle recording it's speed and position.  In this quickstart we use the temporal point type `tgeompoint` and a sequence of such points creates a `tgeompointSeq`  - conceptually a linestring of temporal points. The points are created from the AIS dataset by combining the reported latitude and longitude with the timestamp of that point. 
-The mobilityDB functions `twavg` and `speed` are used to clean the data to delete ships where there is a large difference between the time weighted average of the reported speed on ground (sog) and the speed of the actual trip. AIS has a certain amount of jitter which is particularly noticeable for stationary ships, to help clean this we apply a Douglas Peucker simplifcation of 3m to the sequences, this also reduces the size of data in the maps and helps speed up visualizations.    
+The mobilityDB functions `twavg` and `speed` are used to clean the data to delete ships where there is a large difference between the time weighted average of the reported speed on ground (sog) and the speed of the actual trip. AIS has a certain amount of jitter which is particularly noticeable for stationary ships, to help clean this we apply a Douglas Peucker simplification of 3m to the sequences, this also reduces the size of data in the maps and helps speed up visualizations.    
 
 A temporal sequence point (tgeompointSeq) represents a continuous movement between spatial positions over time. The function `trajectory` extracts the spatial path of this movement as a PostGIS linestring `trip_geom`. The trajectory is used with a spatial index to speed up bounding box intersection queries.  
 
