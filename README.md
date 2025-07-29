@@ -10,8 +10,6 @@
   <img alt="Blueprint screenshot showing h3 hex aggregate query result" src="geobase/media/screenshot_h3.jpg">
 </picture>
 
-
-
 ## Outline
 
 1. [What's included](#whats-included)
@@ -51,12 +49,10 @@ First you will need to load and process the data for the application.  You can r
 4. Select Ship Movement Analysis
 4. Click Run.
 
-See the video below for a walkthrough:
+See the video below for a quick walkthrough on choosing the quickstart.
 
+<video src="https://github.com/user-attachments/assets/66753afc-2e2e-4a4b-9760-2c8f8225be6f" ></video>
 
-<video controls>
-<source src="geobase/media/select_ship_quickstart.mp4" type="video/mp4">
-</video>
 
 
 #### Option 2: Using `psql` version compatible with your Geobase project (postgres 14 or 15)
