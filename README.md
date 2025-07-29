@@ -39,27 +39,37 @@ Once you're Geobase project is created, you can manually download, clone or crea
 
 ### Migration
 
-First you will need to load and process the data for the application.  You can run SQL from within the Geobase application, or you connect from your own. Geobase has uploaded a sample of AIS shipping data in CSV format from 2021 for you to get going quickly.
+First you will need to load and process the data for the application.  You can run SQL from within the Geobase application, or you connect from your own system. Geobase has uploaded a sample of AIS shipping data in CSV format from 2021 for you to get going quickly. It's probably a good idea to read the SQL to see what it's going to do before you run it.
 
 #### Option 1: Quickstart via the studio
 
 1. Go to the studio
 2. Navigate to the SQL Editor page
 3. Click on Geobase Quickstarts
-4. Select Ship Movement Analysis
+4. Select Ship Movement Analysis and review
 4. Click Run.
 
-See the video below for a quick walkthrough on choosing the quickstart.
+See the video below for a quick walkthrough on choosing the quickstart. 
 
 <video src="https://github.com/user-attachments/assets/66753afc-2e2e-4a4b-9760-2c8f8225be6f" ></video>
 
+#### Option 2: Manually via the studio
+
+You can copy the [SQL migration file](geobase/geobase-ship-movement.sql) from this repository into a new SQL Query within the Studio.
+
+1. Copy the SQL File
+2. Go to the studio
+3. Navigate to the SQL Editor page
+4. Click on New Query
+4. Paste in the SQL and review
+4. Click Run.
 
 
-#### Option 2: Using `psql` version compatible with your Geobase project (postgres 14 or 15)
+#### Option 3: Using `psql` version compatible with your Geobase project (postgres 14 or 15)
 
-Locally if you have the postgresql client binaries installed, you can use psql to connect to Postgres on your Geobase server and load in the SQL file.  
+Locally if you have the PostgreSQL client binaries installed, you can use psql to connect to PostgreSQL on your Geobase server and load in the SQL file.  
 
-Set the database uri in your environment, you can get it from the geobase project settings page:
+Set the database uri in your environment, you can get it from the Geobase project settings page:
 
 ![geobase-settings](https://d2w9rnfcy7mm78.cloudfront.net/31914368/original_171c024fa1a8608349202e2fbbf9e7bf.png?1730637777?bc=0)
 
@@ -154,8 +164,8 @@ The database migration sets up the following tables:
 
 ### Functions
 
-1. `public.ships_fn()`: Create vector tiles (mvt) with embedded timestamps, to be served by the Geobase tile server. This function is what shows the animated ship movements on the map. 
-2. `public.activity_by_region_and_time_local()`: Queries the AIS table with a geoJSON polygon, time interval and map resolution and returns the a timestamp, the h3 hex id and count of ship events from the Aisinputfiltered table for that area. This function is used when querying the map by drawing on it. 
+1. `public.ships_fn()`: Create vector tiles (mvt) with embedded timestamps, to be served by the Geobase tile server. This function powers the animated ship movements on the map. 
+2. `public.activity_by_region_and_time_local()`: Queries the AIS table with a geoJSON polygon, time interval and map resolution and returns the a timestamp, the h3 hexagon id and count of ship events from the Aisinputfiltered table for that area. This function is used when querying the map by drawing on it.
 
 
 
@@ -185,49 +195,28 @@ The AIS data is from 2021. Historical AIS data is provided by the Danish Maritim
 
 ### MobilityDB & PostGIS
 
-[MobilityDB](https://mobilitydb.com/) is an extension of PostgreSQL and PostGIS that provides temporal types, for example a moving vehicle recording it's speed and position.  In this quickstart we use the temporal point type `tgeompoint` and a sequence of such points creates a `tgeompointSeq`  - conceptually a linestring of temporal points. The points are created from the AIS dataset by combining the reported latitude and longitude with the timestamp of that point. 
-The mobilityDB functions `twavg` and `speed` are used to clean the data to delete ships where there is a large difference between the time weighted average of the reported speed on ground (sog) and the speed of the actual trip. AIS has a certain amount of jitter which is particularly noticeable for stationary ships, to help clean this we apply a Douglas Peucker simplification of 3m to the sequences, this also reduces the size of data in the maps and helps speed up visualizations.    
+[MobilityDB](https://mobilitydb.com/) is an extension of PostgreSQL and PostGIS that provides temporal types, for example a moving vehicle, recording it's speed and position.  In this quickstart we use the temporal point type `tgeompoint` and a sequence of such points creates a `tgeompointSeq`  - conceptually a linestring of temporal points. The points are created from the AIS dataset by combining the reported latitude and longitude with the timestamp of that point. 
+The mobilityDB functions `twavg` and `speed` are used to clean the data to delete ships where there is a large difference between the time weighted average of the reported speed on ground (sog) and the speed of the actual trip. AIS has a certain amount of jitter which is particularly noticeable for stationary ships. To help clean this we apply a Douglas Peucker `douglasPeuckerSimplify` simplification of 3m to the sequences, this also reduces the size of data in the maps and helps speed up visualizations.  There are other simplification methods possible, including `minDistSimplify` which ensures consecutive values are at least a certain distance apart and `maxDistSimplify` which removes points that are less than or equal to the distance. Which one you choose from depends on the type of data and how you want to visualize it.
 
 A temporal sequence point (tgeompointSeq) represents a continuous movement between spatial positions over time. The function `trajectory` extracts the spatial path of this movement as a PostGIS linestring `trip_geom`. The trajectory is used with a spatial index to speed up bounding box intersection queries.  
 
 In the `ships_fn`, we want to include timestamps with our ship line map data. We use the MobilityDB function `asMVTGeom` to return the line string geometries and times attributes based on the passed in bounds geometry. The ships_fn function also removes ship tracks which are less than 500 meters and to speed up queries does a bounding box overlap operation `&&` of the linestring trajectory of the ship with the requested tile bounds.
 
-Geobase also has h3 built into it. [H3](https://github.com/uber/h3) is a geospatial indexing system using a hexagonal grid that can be subdivided into finer and finer hexagonal grids. The [h3 bindings](https://github.com/zachasme/h3-pg?tab=readme-ov-file) provide the `h3_polygon_to_cells` function which finds the correct h3 hex cells for the polygon that the user draws, for a given resolution.
+Geobase also has h3 support built into it. [H3](https://github.com/uber/h3) is a geospatial indexing system using a hexagonal grid that can be subdivided into finer and finer hexagonal grids. The [h3 bindings](https://github.com/zachasme/h3-pg?tab=readme-ov-file) provide the `h3_polygon_to_cells` function which finds the correct h3 hex cells for the polygon that the user draws, for a given resolution.
 
 
-### Maplibre & DeckGL
-
-TODO - what it's showing, Deck.gl triplayer and rendersublayers 
+### Maps
+ 
 
 #### Maplibre 
 
-[MapLibre ](https://maplibre.org/) is the mapping library used. We set up 
+[MapLibre ](https://maplibre.org/) is the mapping library used and provides the basemap style. 
 
 #### Deck.gl
 
-#### H3 Polygon query 
+[Deck.gl ](https://deck.gl/) is a WebGL-powered framework for visual exploratory data analysis of large datasets. It is used with maplibre to render the vector tiles and the animated ship trails on the map.
 
-The data from the tileserver needs to be processed a little bit to split the times string into a timestamps array. Multi linestrings into single ones.   
-
-```json
-{
-          "type": "Feature",
-          "geometry": {
-            "type": "LineString",
-            "coordinates": [
-              [ 15.04302, 54.13267 ],
-              [ 15.09658, 53.91566 ],
-              [ 15.14739, 53.69995 ],
-              [ 15.18173, 53.54438 ]
-            ]
-          },
-          "properties": {
-            "mmsi": 229536000,
-            "times": "{1610064000,1610064072,1610064142,1610064192}"
-          }
-        },
-```
-
+A vector linestring feature from the tile server has an array of coordinates and a timestamps property. For example:
 
 ```json
 	{
@@ -247,6 +236,13 @@ The data from the tileserver needs to be processed a little bit to split the tim
 		}
 	}
 ```
+
+The Deck.gl MVTLayer loads in the layer for the ships and the renderSubLayers prop is called for each tile so that for each tile a TripsLayer tile is returned. This TripsLayer reads the data of the feature for getPath (the coordinates) and getTimestamps (the timestamps array). Color, opacity, width, trail length and if trails should fade are also set. 
+
+#### H3 Polygon query 
+
+H3HexagonLayer is used to display the hexagons on the map. [H3](https://github.com/uber/h3) is a geospatial indexing system using a hexagonal grid. The hexagons are created by drawing a polygon on the map and then querying the database for the h3 hexagons that intersect with that polygon. The query is done using the `activity_by_region_and_time_local` function which returns a timestamp, h3 hexagon id and count of ship events for that area. 
+
 
 ## Adapting
 
@@ -278,5 +274,5 @@ SELECT date(time), tgeompointseq( array_agg(  tgeompoint(ST_Transform(geom, 3857
 FROM osm_gpx group by date(time); 
 ```
 
-You can then adapt the steps as you see fit, similar to how this quickstart does it.  See the [setup migration file](geobase/geobase-ship-movement.sql)
+You can then adapt the steps as you see fit, similar to how this quickstart does it.
 
