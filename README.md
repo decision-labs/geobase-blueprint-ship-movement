@@ -219,22 +219,22 @@ Geobase also has h3 support built into it. [H3](https://github.com/uber/h3) is a
 A vector linestring feature from the tile server has an array of coordinates and a timestamps property. For example:
 
 ```json
-	{
-		"type": "Feature",
-		"geometry": {
-			"type": "LineString",
-			"coordinates": [
-	      [ 15.04302, 54.13267 ],
-        [ 15.09658, 53.91566 ],
-        [ 15.14739, 53.69995 ],
-        [ 15.18173, 53.54438 ]
-			]
-		},
-    "properties": {
-      "tripid": 123,
-			"timestamps": [1610064000,1610064072,1610064142,1610064192],
-		}
-	}
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [
+      [ 15.04302, 54.13267 ],
+      [ 15.09658, 53.91566 ],
+      [ 15.14739, 53.69995 ],
+      [ 15.18173, 53.54438 ]
+    ]
+  },
+  "properties": {
+    "tripid": 123,
+    "timestamps": [1610064000,1610064072,1610064142,1610064192],
+  }
+}
 ```
 
 The Deck.gl MVTLayer loads in the layer for the ships and the renderSubLayers prop is called for each tile so that for each tile a TripsLayer tile is returned. This TripsLayer reads the data of the feature for getPath (the coordinates) and getTimestamps (the timestamps array). Color, opacity, width, trail length and if trails should fade are also set. 
