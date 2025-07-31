@@ -19,13 +19,14 @@
 4. [Deployment](#deployment)
 5. [Video](#video)
 6. [Further Info](#further-info)
-7. [Adapting](#adapting)
+7. [Learn More](#learn-more)
+8. [Adapting](#adapting)
 
 ## What's included
 
-This is a Next.JS React and Geobase application that shows animated ship movements on a map. It uses the powerful PostgreSQL extensions MobilityDb, H3 and PostGIS built into Geobase. The application can also interactively query the data to calculate aggregate statistics.  Using Geobase, with very minimal editing, a user can quickly get started loading, processing and viewing dynamic temporal geospatial data. 
+This is a Next.JS React and Geobase application that shows animated ship movements on a map. It uses the powerful PostgreSQL extensions MobilityDb, H3 and PostGIS, all built into Geobase. The application can also interactively query the data to calculate aggregate statistics.  With just minimal editing, a user can quickly get started loading, processing and viewing dynamic temporal geospatial data. 
 
-AIS stands for Automatic Identification System. It is the location tracking system for sea vessels. It's like GPS but with lots of other additional data fields. There is a dataset already uploaded to Geobase ready for this quickstart. This quickstart imports, processes and makes available the data as temporal vector tiles. The vector tiles are then displayed using Deck.gl on a Maplibre map. The user can draw a polygon on the map and results in hexagons showing data about how much ship activities there are in each area.   
+AIS stands for Automatic Identification System. It is the location tracking system for sea vessels. It's like GPS but with man additional data fields. There is a dataset already uploaded to Geobase ready for this quickstart. This quickstart will import, processes and make the data available as temporal vector tiles. The vector tiles are then displayed using Deck.gl on a Maplibre map. Users can draw a polygon on the map and the application will display hexagons showing the amount of ship activity in the specified area.   
 
 ## Prerequisites
 
@@ -39,7 +40,7 @@ Once you're Geobase project is created, you can manually download, clone or crea
 
 ### Migration
 
-First you will need to load and process the data for the application.  You can run SQL from within the Geobase application, or you connect from your own system. Geobase has uploaded a sample of AIS shipping data in CSV format from 2021 for you to get going quickly. It's probably a good idea to read the SQL to see what it's going to do before you run it.
+First you will need to load and process the data for the application.  You can run SQL from within the Geobase application, or you connect from your own system. Geobase includes a sample of the AIS shipping data in CSV format from 2021 for you to get going quickly. It's probably a good idea to read the SQL to see what it's going to do before you run it.
 
 #### Option 1: Quickstart via the studio
 
@@ -83,7 +84,7 @@ psql -d $DATABASE_URI -f geobase/geobase-ship-movement.sql
 
 ### Environment Variables
 
-You only need to have these variables set:
+To connect your app to Geobase, configure these environment variables. Include them in a `.env.local` file for local development.
 
 ```
 VITE_GEOBASE_URL=https://YOUR_PROJECT_REF.geobase.app
@@ -96,14 +97,7 @@ You can find the project ref and anon key in the Geobase project settings page:
 
 ### Local Development
 
-#### env.local file 
-
-Create an `.env.local` file with the same contents as above.
-
-```
-VITE_GEOBASE_URL=https://YOUR_PROJECT_REF.geobase.app
-VITE_GEOBASE_ANON_KEY=YOUR_GEOBASE_PROJECT_ANON_KEY
-```
+``
 
 #### Running the app
 Use nvm to set node version, e.g.
@@ -186,23 +180,32 @@ TODO Youtube Video
 
 [🎥 Take a look at the blueprint overview video](https://www.youtube.com/watch?v=TODO)
 
+## Further Info
 
-## Further info
+For additional information, refer to:
+
+  [Next.js documentation](https://nextjs.org/docs)
+  [Geobase documentation](https://docs.geobase.app/)
+
+For support, reach out on the [Geobase Discord](https://geobase.app/discord).
+
+## Learn More
 
 ### Data
 
-The AIS data is from 2021. Historical AIS data is provided by the Danish Maritime Authority. The data shown is a short 3 1/2 hr subset from 1st Aug 2021. It has over half a million rows. Geographically the data is around Denmark. It records data from a range of ships including fishing boats, ferries, yachts under sail, tankers, cargo ships and even some military vessels. 
+The AIS data is from 2021. Historical AIS data is provided by the Danish Maritime Authority. The data shown is a short 3 1/2 hr subset from 1st Aug 2021. This subset, geographically centered around Denmark, contains over half a million rows and records data from a range of vessels, including fishing boats, ferries, yachts under sail, tankers, cargo ships, and even some military vessels. 
 
 ### MobilityDB & PostGIS
 
-[MobilityDB](https://mobilitydb.com/) is an extension of PostgreSQL and PostGIS that provides temporal types, for example a moving vehicle, recording it's speed and position.  In this quickstart we use the temporal point type `tgeompoint` and a sequence of such points creates a `tgeompointSeq`  - conceptually a linestring of temporal points. The points are created from the AIS dataset by combining the reported latitude and longitude with the timestamp of that point. 
-The mobilityDB functions `twavg` and `speed` are used to clean the data to delete ships where there is a large difference between the time weighted average of the reported speed on ground (sog) and the speed of the actual trip. AIS has a certain amount of jitter which is particularly noticeable for stationary ships. To help clean this we apply a Douglas Peucker `douglasPeuckerSimplify` simplification of 3m to the sequences, this also reduces the size of data in the maps and helps speed up visualizations.  There are other simplification methods possible, including `minDistSimplify` which ensures consecutive values are at least a certain distance apart and `maxDistSimplify` which removes points that are less than or equal to the distance. Which one you choose from depends on the type of data and how you want to visualize it.
+[MobilityDB](https://mobilitydb.com/) is an extension of PostgreSQL and PostGIS that provides temporal types, for example a moving vehicle, recording it's speed and position.  In this quickstart we use the temporal point type `tgeompoint` and a sequence of such points creates a `tgeompointSeq`  - conceptually a linestring of temporal points.  These points are generated from the AIS dataset by combining the reported latitude and longitude with their respective timestamps.
+
+The mobilityDB functions `twavg` and `speed` are used to clean the data to delete ships where there is a large difference between the time weighted average of the reported speed on ground (sog) and the speed of the actual trip. AIS has a certain amount of jitter which is particularly noticeable for stationary ships. To help mitigate this we apply a Douglas Peucker `douglasPeuckerSimplify` simplification of 3m to the sequences.  This not only cleans the data but also reduces its size for maps and speeds up visualizations.  There are other simplification methods possible, including `minDistSimplify` which ensures consecutive values are at least a certain distance apart and `maxDistSimplify` which removes points that are less than or equal to the distance. Which one you choose for your own projects from depends on the type of data and how you want to visualize it.
 
 A temporal sequence point (tgeompointSeq) represents a continuous movement between spatial positions over time. The function `trajectory` extracts the spatial path of this movement as a PostGIS linestring `trip_geom`. The trajectory is used with a spatial index to speed up bounding box intersection queries.  
 
 In the `ships_fn`, we want to include timestamps with our ship line map data. We use the MobilityDB function `asMVTGeom` to return the line string geometries and times attributes based on the passed in bounds geometry. The ships_fn function also removes ship tracks which are less than 500 meters and to speed up queries does a bounding box overlap operation `&&` of the linestring trajectory of the ship with the requested tile bounds.
 
-Geobase also has h3 support built into it. [H3](https://github.com/uber/h3) is a geospatial indexing system using a hexagonal grid that can be subdivided into finer and finer hexagonal grids. The [h3 bindings](https://github.com/zachasme/h3-pg?tab=readme-ov-file) provide the `h3_polygon_to_cells` function which finds the correct h3 hex cells for the polygon that the user draws, for a given resolution.
+Geobase also incorporates H3 support. [H3](https://github.com/uber/h3) is a geospatial indexing that uses a hexagonal grid which can be subdivided into progressively finer hexagonal grids. The [h3 bindings](https://github.com/zachasme/h3-pg?tab=readme-ov-file) provide the `h3_polygon_to_cells` function which identifies the correct H3 hex cells for a user-drawn polygon at a given resolution.
 
 
 ### Maps
@@ -237,7 +240,8 @@ A vector linestring feature from the tile server has an array of coordinates and
 }
 ```
 
-The Deck.gl MVTLayer loads in the layer for the ships and the renderSubLayers prop is called for each tile so that for each tile a TripsLayer tile is returned. This TripsLayer reads the data of the feature for getPath (the coordinates) and getTimestamps (the timestamps array). Color, opacity, width, trail length and if trails should fade are also set. 
+The Deck.gl MVTLayer loads in the layer for the ships and the renderSubLayers prop is called for each tile so that for each tile a TripsLayer tile is returned. This TripsLayer reads the data of the feature for getPath (the coordinates) and getTimestamps (the timestamps array).
+
 
 #### H3 Polygon query 
 
@@ -255,7 +259,7 @@ Firstly, create your table for importing the raw gps data from a gpx file.
 create table osm_gpx (fid serial not null, geom geometry(point, 4326), ele double precision, "time" timestamp with time zone);
 ```
 
-Using [ogr2ogr](https://gdal.org/en/stable/programs/ogr2ogr.html) with the PostGIS driver, you can connect to your Geobase instance and import the data from the gpx file directly.  You can do this for several files. 
+Using [ogr2ogr](https://gdal.org/en/stable/programs/ogr2ogr.html) with the PostGIS driver, you can connect to your Geobase instance and import the data from the gpx file directly.  You can do this for several files. Note that the ogr2ogr process can be a bit slow, so have patience if theres lots of points in your gpx track! 
 
 ```
 ogr2ogr -f "PostgreSQL" PG:"host=YOUR_PROJECT_REF.geobase.app dbname=postgres port=6443 user=supabase_admin password=YOUR_DB_PASSWORD" path/to/gpx_file.gpx  -nln osm_gpx -sql "Select * from track_points"
@@ -274,5 +278,4 @@ SELECT date(time), tgeompointseq( array_agg(  tgeompoint(ST_Transform(geom, 3857
 FROM osm_gpx group by date(time); 
 ```
 
-You can then adapt the steps as you see fit, similar to how this quickstart does it.
-
+You can then adapt the other steps as you see fit, similar to how this quickstart does it.
