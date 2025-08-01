@@ -119,7 +119,7 @@ Run dev:
 ```bash
 npm run dev 
 # or
-pnpm dev 
+pnpm run dev 
 ```
 
 
