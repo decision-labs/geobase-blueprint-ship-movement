@@ -168,7 +168,35 @@ export default function Demo({
 				getPath: (d) => d.geometry.coordinates,
 				getTimestamps: (d) => d.properties.timestamps,
 				getColor: (d) => {
-					return [255, 255, 255]; // dark mode
+
+          switch (d.properties.shiptype) {
+            // other values include: Towing,Law enforcement, HSC, SAR
+            case "Ferry":
+              return [0, 255, 100]; 
+            case "Fishing":
+              return [0, 0, 255]; 
+            case "Cargo":
+              return [255, 100, 0];
+            case "Tanker":
+              return [255, 100, 50]; 
+            case "Pilot":
+              return [255, 120, 10]; 
+            case "Tug":
+              return [255, 120, 120]; 
+            case "Dredging":
+              return [0, 100, 255]; 
+            case "Passenger":
+              return [10, 255, 10]; 
+            case "Military":
+              return [255, 0, 0]; 
+            case "Sailing":
+              return [50, 15, 255]; 
+            case "Undefined":
+              return [200, 200, 200]; 
+            default:
+              return [255, 255, 255]; 
+          }
+				  //	return [255, 255, 255]; // dark mode
 					// return [50, 48, 43]; // light mode
 				},
 				opacity: 0.8,
@@ -235,6 +263,7 @@ export default function Demo({
 						properties: {
 							tripid: Math.round(Math.random() * 100000),
 							timestamps: ts_segment,
+              shiptype: feature.properties.shiptype
 						},
 					});
 					index = coords.length;
@@ -248,6 +277,7 @@ export default function Demo({
 							? feature.properties.trip_id
 							: 0,
 						timestamps: ts_final,
+            shiptype: feature.properties.shiptype,
 					},
 				});
 			}

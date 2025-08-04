@@ -44,7 +44,6 @@ FROM '/uploads/sample-data/aisdk-2021-08-01-subset.csv' DELIMITER  ',' CSV HEADE
 UPDATE AISInput SET
   navigationalstatus = CASE navigationalstatus WHEN 'Unknown value' THEN NULL END,
   imo = CASE IMO WHEN 'Unknown' THEN NULL END,
-  shiptype = CASE shiptype WHEN 'Undefined' THEN NULL END,
   typeofpositionfixingdevice = CASE typeofpositionfixingdevice
   WHEN 'Undefined' THEN NULL END,
   Geom = ST_SetSRID(ST_MakePoint(longitude, latitude), 4326);
@@ -64,13 +63,14 @@ alter table public.aisinputfiltered enable row level security;
 --- minDistSimplify : Ensures consecutive values are at least a certain distance apart. 
 --- maxDistSimplify : Removes points that are less than or equal to the distance 
 DROP TABLE IF EXISTS Ships;
-CREATE TABLE Ships(MMSI, Trip, SOG, COG) AS 
+CREATE TABLE Ships(MMSI, Trip, SOG, COG, ShipType) AS 
 SELECT MMSI, 
   douglasPeuckerSimplify(tgeompointSeq(array_agg(tgeompoint(ST_Transform(Geom, 3857), T) ORDER BY T)), 3), 
   tfloatSeq(array_agg(tfloat(SOG, T) ORDER BY T) FILTER (WHERE SOG IS NOT NULL)), 
-  tfloatSeq(array_agg(tfloat(COG, T) ORDER BY T) FILTER (WHERE COG IS NOT NULL)) 
+  tfloatSeq(array_agg(tfloat(COG, T) ORDER BY T) FILTER (WHERE COG IS NOT NULL)),
+  ShipType
 FROM AISInputFiltered 
-GROUP BY MMSI;
+GROUP BY MMSI, ShipType;
 
 alter table public.ships enable row level security;
 
@@ -113,10 +113,10 @@ AS $function$
     mvtgeom AS (
         -- ++++++++++++++++++++++++++++++++++++
         SELECT mmsi,
-          (mvt).geom AS geom, (mvt).times AS times FROM (
+          (mvt).geom AS geom, (mvt).times AS times, ShipType FROM (
         SELECT 
           asMVTGeom(f.trip, bounds.geom) AS mvt,
-          f.mmsi
+          f.mmsi, f.shiptype
         FROM public.ships f, bounds 
           WHERE 
           length(trip) > 500 AND -- remove trips less than 500m
@@ -192,5 +192,4 @@ LANGUAGE plpgsql;
 DROP TABLE IF EXISTS AISInput;
 
 
-
-
+    
