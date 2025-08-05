@@ -21,6 +21,7 @@
 6. [Further Info](#further-info)
 7. [Learn More](#learn-more)
 8. [Adapting](#adapting)
+9. [Authors](#authors)
 
 ## What's included
 
@@ -287,3 +288,8 @@ To style the ship tracks according to the type of ship (cargo, fishing, ferry et
 Then in the Next.js app, ensure that shiptype is set in the feature properties and for the `tripsLayer` change the value set in `getColor` depending on the property.
 
 You can see a working example of this in the ship_type_colours branch
+
+## Authors
+
+[Sabman](https://github.com/sabman), [Fergarram](https://github.com/Fergarram), [tb1995](https://github.com/tb1995), [srasul](https://github.com/srasul), [timwaters](https://github.com/timwaters/)
+
