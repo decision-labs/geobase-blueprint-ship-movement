@@ -250,7 +250,7 @@ H3HexagonLayer is used to display the hexagons on the map. [H3](https://github.c
 
 ## Adapting
 
-If you were to adapt this code for your own projects, you could start with GPS data. 
+If you were to adapt this code for your own projects, you could adapt the approach to work with GPS data, or you could delve into the ship data further and pass through attribute information such as ship type to style the tracks.   
 
 ### GPS Data
 
@@ -279,3 +279,11 @@ FROM osm_gpx group by date(time);
 ```
 
 You can then adapt the other steps as you see fit, similar to how this quickstart does it.
+
+### Styling on Ship Type
+
+To style the ship tracks according to the type of ship (cargo, fishing, ferry etc), we need to pass the ShipType column from the AIS tables into the `ships` table and include it in the `ships_fn` function. 
+
+Then in the Next.js app, ensure that shiptype is set in the feature properties and for the `tripsLayer` change the value set in `getColor` depending on the property.
+
+You can see a working example of this in the ship_type_colours branch
