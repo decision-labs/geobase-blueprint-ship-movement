@@ -177,9 +177,10 @@ Row Level Security  is implemented for the tables to ensure data privacy and acc
 
 ## Video
 
-TODO Youtube Video
 
-[🎥 Take a look at the blueprint overview video](https://www.youtube.com/watch?v=TODO)
+[![Geobase Ship Movement Blueprint Tutorial](https://img.youtube.com/vi/XSfeKSQ-JG0/0.jpg)](https://www.youtube.com/watch?v=XSfeKSQ-JG0)
+
+[🎥 Take a look at the blueprint overview video on YouTube](https://www.youtube.com/watch?v=XSfeKSQ-JG0)
 
 ## Further Info
 
