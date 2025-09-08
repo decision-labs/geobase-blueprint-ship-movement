@@ -1,4 +1,4 @@
-# Blueprint: Ship Movement Analysis (Next.js)
+# Blueprint: Ship Movement Analysis (React)
 
  A Geobase quickstart blueprint application showing animated ship trails. 
 
@@ -25,7 +25,7 @@
 
 ## What's included
 
-This is a Next.JS React and Geobase application that shows animated ship movements on a map. It uses the powerful PostgreSQL extensions MobilityDb, H3 and PostGIS, all built into Geobase. The application can also interactively query the data to calculate aggregate statistics.  With just minimal editing, a user can quickly get started loading, processing and viewing dynamic temporal geospatial data. 
+This is a React and Geobase application that shows animated ship movements on a map. It uses the powerful PostgreSQL extensions MobilityDb, H3 and PostGIS, all built into Geobase. The application can also interactively query the data to calculate aggregate statistics.  With just minimal editing, a user can quickly get started loading, processing and viewing dynamic temporal geospatial data. 
 
 AIS stands for Automatic Identification System. It is the location tracking system for sea vessels. It's like GPS but with man additional data fields. There is a dataset already uploaded to Geobase ready for this quickstart. This quickstart will import, processes and make the data available as temporal vector tiles. The vector tiles are then displayed using Deck.gl on a Maplibre map. Users can draw a polygon on the map and the application will display hexagons showing the amount of ship activity in the specified area.   
 
@@ -33,7 +33,7 @@ AIS stands for Automatic Identification System. It is the location tracking syst
 
 The first step is to have an account on [Geobase](https://geobase.app/) and to create a new project.
 
-Basic familiarity with Node or running Next.js applications (e.g. via nvm and using npm)
+Basic familiarity with Node or running React / Next.js applications (e.g. via nvm and using npm)
 
 Once you're Geobase project is created, you can manually download, clone or create a new GitHub repository using this template by [clicking here](https://github.com/new?template_name=geobase-blueprint-ship-movement&template_owner=decision-labs). This will create a copy of this repo without the git history.
 
@@ -161,7 +161,7 @@ The database migration sets up the following tables:
 
 1. `public.ships_fn()`: Create vector tiles (mvt) with embedded timestamps, to be served by the Geobase tile server. This function powers the animated ship movements on the map. 
 2. `public.activity_by_region_and_time_local()`: Queries the AIS table with a geoJSON polygon, time interval and map resolution and returns the a timestamp, the h3 hexagon id and count of ship events from the Aisinputfiltered table for that area. This function is used when querying the map by drawing on it.
-
+3. `public.get_ships_time_range()`: Returns the minimum and maximum timestamps from the ships table. This is used to set the time range for the animation control on the map. You can override this time range data by setting the start_date and end_date in STATIC_TIME_RANGE in the `lib/consts.ts` file.
 
 
 ### RLS (Row Level Security)
@@ -186,7 +186,7 @@ Row Level Security  is implemented for the tables to ensure data privacy and acc
 
 For additional information, refer to:
 
-  [Next.js documentation](https://nextjs.org/docs)
+  [React documentation](https://react.dev/reference/react)
   [Geobase documentation](https://docs.geobase.app/)
 
 For support, reach out on the [Geobase Discord](https://geobase.app/discord).
