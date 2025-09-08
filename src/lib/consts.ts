@@ -3,20 +3,16 @@ export const TIME_VECTOR_TILES_URL = `${VITE_GEOBASE_URL}/tileserver/v1/public.s
 
 export const MAP_STYLE = 'https://api.maptiler.com/maps/satellite/style.json?key=6pXwhZLsjUohW1KXh2ZZ';
 
-export const time_range = {
-	start_time: "2021-01-08 00:00:00+00",
-	end_time: "2021-01-08 03:30:00+00",
+// Set the times in STATIC_TIME_RANGE to override the data time range
+// e.g 
+// export const STATIC_TIME_RANGE = {
+// 	start_time: "2021-01-08 00:00:00+00",
+// 	end_time:   "2021-01-08 03:30:00+00"
+// };
+export const STATIC_TIME_RANGE = {
+	start_time: null,
+	end_time:   null
 };
-
-// Create date objects
-export const start_date = new Date(time_range.start_time);
-export const end_date = new Date(time_range.end_time);
-
-// Get the Unix timestamp in seconds
-export const epoch_start_time = Math.floor(start_date.getTime() / 1000);
-export const epoch_end_time = Math.floor(end_date.getTime() / 1000);
-export const min_timestamp = epoch_start_time; //2021-01-08 00:00:00+00
-export const max_timestamp = epoch_end_time; //2021-01-08 01:08:02+00
 
 export const interval_val = '24 hours'; 
 

@@ -192,5 +192,22 @@ LANGUAGE plpgsql;
 DROP TABLE IF EXISTS AISInput;
 
 
+-- to get the range of timestamp of data:
+CREATE OR REPLACE FUNCTION public.get_ships_time_range()
+RETURNS TABLE (
+  start_time text,
+  end_time text
+)
+SECURITY DEFINER
+SET search_path TO 'public', 'extensions'
+LANGUAGE sql
+AS $$
+  SELECT 
+    MIN(startTimestamp(trip))::text AS start_time,
+    MAX(endTimestamp(trip))::text AS end_time
+  FROM ships;
+$$;
+
+
 
 

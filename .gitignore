@@ -153,5 +153,5 @@ node_modules
 psd
 thumb
 sketch
-
+pnpm-workspace.yaml
 # End of https://www.toptal.com/developers/gitignore/api/node,react

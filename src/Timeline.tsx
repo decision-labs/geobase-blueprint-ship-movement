@@ -2,6 +2,7 @@ import React from "react";
 import { PauseIcon, PlayIcon } from "@radix-ui/react-icons";
 import { cn } from "./lib/utils";
 import moment from "moment";
+import "moment-timezone";
 
 export type TimelineProps = {
 	isPaused: boolean;
@@ -17,9 +18,10 @@ export function Timeline({ time, startDate, endDate, loopLength, isPaused, setIs
 	const [isDragging, setIsDragging] = React.useState(false);
 	const [percentOffset, setPercentOffset] = React.useState(0);
 	const [currentDate, setCurrentDate] = React.useState(new Date());
-	const sliceWidthInHours = (endDate.getTime() - startDate.getTime()) / 1000 / 60 / 60;
-	const sliceWidthPercent = (sliceWidthInHours / 24) * 200; // Was 100. Set to 200 to widen the timeline.  
-	const slicePercentStart = ((startDate.getTime() / 1000 / 60 / 60) % 24) / 24 * 100;
+
+  const sliceWidthPercent = 100;  // 100 = always 100% full width
+  const slicePercentStart = 0; // start at 0 so it's always on the left of the container
+
 	const isPausedRef = React.useRef(isPaused);
 
 	const startingDragPosition = React.useRef({
@@ -30,6 +32,8 @@ export function Timeline({ time, startDate, endDate, loopLength, isPaused, setIs
 
 	const grabHandle = React.useRef<HTMLDivElement | null>(null);
 	const timeSliceRef = React.useRef<HTMLDivElement | null>(null);
+
+  if (!startDate || !endDate || loopLength <= 0) return null;
 
 	const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
 		setIsDragging(true);
@@ -108,7 +112,7 @@ export function Timeline({ time, startDate, endDate, loopLength, isPaused, setIs
 				isDragging ? "cursor-grabbing" : ""
 			)
 		}>
-			<h2 className="text-lg text-left self-left order-2 mt-2">
+			<h2 className="text-md text-left self-left order-2 mt-2">
 				Timeline {moment(currentDate).tz('Europe/Berlin').format('(DD.MM.YYYY)')}
 			</h2>
 			<div className="relative w-full h-20 order-1">

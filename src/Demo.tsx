@@ -6,13 +6,11 @@ import DeckGL, {
 	GeoJsonLayer,
 	LinearInterpolator,
 	MapViewState,
-	PathLayer,
 	IconLayer,
 } from "deck.gl";
 import { useRef, useCallback } from "react";
 import moment from "moment-timezone";
 import LoadingLine from './components/ui/loading-line';
-import { cn } from "./lib/utils";
 import { Timeline } from "./Timeline";
 import { createClient } from "@supabase/supabase-js";
 import "./styles.css";
@@ -24,15 +22,11 @@ import {
 	VITE_GEOBASE_URL,
 	defaultAnimationSpeed,
 	defaultTrailLength,
-	end_date,
 	interval_val,
 	map_areas,
-	max_timestamp,
-	min_timestamp,
 	ports_and_things,
-	start_date,
 	transitionProps,
-  time_range,
+  STATIC_TIME_RANGE
 } from "./lib/consts";
 import { Header } from "./Header";
 import { MjolnirGestureEvent } from "mjolnir.js";
@@ -40,7 +34,6 @@ import { MjolnirGestureEvent } from "mjolnir.js";
 const supabase = createClient(VITE_GEOBASE_URL, VITE_GEOBASE_ANON_KEY);
 
 export default function Demo({
-	loopLength = max_timestamp - min_timestamp,
 	animationSpeed = defaultAnimationSpeed,
 }) {
 	const [isTripsLayerLoading, setIsTripsLayerLoading] = useState(true);
@@ -56,6 +49,14 @@ export default function Demo({
 	const isHexPulsePaused = useRef(false);
 	const [isDrawing, setIsDrawing] = useState(false);
 	const [isHexLayerVisible, setIsHexLayerVisible] = useState(false);
+  const [dataTimeRange, setDataTimeRange] = useState(null);
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [minTimestamp, setMinTimestamp] = useState<number | null>(null);
+  const [maxTimestamp, setMaxTimestamp] = useState<number | null>(null);
+
+  const loopLength = (maxTimestamp ?? 0) - (minTimestamp ?? 0);
+
 	const [polygonLayer, setPolygonLayer] = useState<GeoJsonLayer>(
 		new GeoJsonLayer({
 			id: "polygon-layer",
@@ -215,7 +216,7 @@ export default function Demo({
 				.substring(1, ts.length - 1)
 				.split(",")
 				.map((t: string) => {
-					return parseInt(t, 10) - min_timestamp;
+					return parseInt(t, 10) - minTimestamp;
 				});
 
 			// slice Multi into individual features
@@ -515,6 +516,8 @@ export default function Demo({
 	}, [hexTimestamps]);
 
 	useEffect(() => {
+    if (!startDate || !endDate || loopLength <= 0) return; // wait until the time frame is set before animating
+
 		const animateTrails = () => {
 			if (!isPaused)
 				setTime((t) => {
@@ -536,18 +539,47 @@ export default function Demo({
 		return () => {
 			window.cancelAnimationFrame(trailAnimation.id);
 		};
-	}, [isPaused, setTime, animationSpeed, loopLength]);
+	}, [isPaused, setTime, animationSpeed, loopLength, startDate, endDate]);
 
 	const date = new Date(hexTimestamps[hexTimestampIndex]);
 	const utcTime = moment.utc(date).format("YYYY-MM-DD HH:mm:ss");
 
-// use get_time_range to get the time range
+  // use get_time_range to get the time range
+  async function fetchTimeRange() {
+    const { data, error } = await supabase.rpc('get_ships_time_range');
 
-const [dataTimeRange, setDataTimeRange] = useState(null);
+    if (error) {
+      console.error('Error fetching time range:', error);
+      return null;
+    }
 
-useEffect( () => {
-  setDataTimeRange(time_range);
-}, []);
+    return data?.[0] || null;
+  }
+
+  // use get_time_range to get the time range
+  useEffect( () => {
+    async function loadTimeRange() {
+      let result = null;
+      // Use static time range if defined and valid
+      if ( STATIC_TIME_RANGE?.start_time && STATIC_TIME_RANGE?.end_time) {
+        result = STATIC_TIME_RANGE;
+      } else {
+        result = await fetchTimeRange();
+      }
+      
+      if (result) {
+        const start = new Date(result.start_time);
+        const end = new Date(result.end_time);
+        setStartDate(start);
+        setEndDate(end);
+        setMinTimestamp(Math.floor(start.getTime() / 1000));
+        setMaxTimestamp(Math.floor(end.getTime() / 1000));
+        setDataTimeRange(result);
+      }
+    }
+
+    loadTimeRange();
+  }, []);
 
 	return dataTimeRange ? (
 		<div className="bg-slate-900 p-10 fixed h-screen w-screen flex flex-col gap-6 max-w-[75rem] left-1/2 -translate-x-1/2">
@@ -612,8 +644,8 @@ useEffect( () => {
 			</div>
 			<Timeline
 				loopLength={loopLength}
-				startDate={start_date}
-				endDate={end_date}
+				startDate={startDate}
+				endDate={endDate}
 				time={time}
 				setTime={setTime}
 				isPaused={isPaused}
