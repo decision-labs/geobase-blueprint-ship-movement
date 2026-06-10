@@ -134,7 +134,7 @@ LANGUAGE sql;
 
 create extension if not exists h3 with schema extensions cascade;
 create extension if not exists h3_postgis with schema extensions cascade;
-create extension if not exists timescaledb with schema extensions cascade;
+-- PG17 image omits timescaledb; use date_bin (PG14+) instead of time_bucket below
 
 
 ALTER TABLE aisinputfiltered
@@ -148,13 +148,13 @@ ALTER TABLE aisinputfiltered
 
 UPDATE aisinputfiltered
 SET
-    h3_10 = h3_lat_lng_to_cell(geom, 10),
-    h3_11 = h3_lat_lng_to_cell(geom, 11),
-    h3_12 = h3_lat_lng_to_cell(geom, 12),
-    h3_13 = h3_lat_lng_to_cell(geom, 13),
-    h3_9 = h3_lat_lng_to_cell(geom, 9),
-    h3_8 = h3_lat_lng_to_cell(geom, 8),
-    h3_7 = h3_lat_lng_to_cell(geom, 7);
+    h3_10 = h3_latlng_to_cell(geom, 10),
+    h3_11 = h3_latlng_to_cell(geom, 11),
+    h3_12 = h3_latlng_to_cell(geom, 12),
+    h3_13 = h3_latlng_to_cell(geom, 13),
+    h3_9 = h3_latlng_to_cell(geom, 9),
+    h3_8 = h3_latlng_to_cell(geom, 8),
+    h3_7 = h3_latlng_to_cell(geom, 7);
 
 create index on aisinputfiltered(h3_10);
 create index on aisinputfiltered(h3_11);
@@ -176,7 +176,7 @@ BEGIN
         SELECT h3_polygon_to_cells(ST_GeomFromGeoJSON(%L), %s) AS hexid
     )
     SELECT 
-      time_bucket(INTERVAL %L, t AT TIME ZONE ''UTC'') AS time_int,
+      date_bin(INTERVAL %L, t AT TIME ZONE ''UTC'', TIMESTAMP ''2000-01-01'') AS time_int,
       h3_%s::text AS hexid,
       count(*) AS count 
     FROM aisinputfiltered
