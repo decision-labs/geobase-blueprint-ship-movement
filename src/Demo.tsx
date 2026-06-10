@@ -275,26 +275,17 @@ export default function Demo({
 
 		const area = radius;
 		switch (true) {
-			case area < 0.895 * 10:
-				resolution = 11; // < 1m
-				break;
 			case area < 6.2 * 10:
-				resolution = 10; // < 7
+				resolution = 10; // finest (h3_10 column)
 				break;
 			case area < 44 * 10:
-				resolution = 9; // < 44
+				resolution = 9;
 				break;
 			case area < 307 * 10:
-				resolution = 8; // < 307
-				break;
-			case area < 2150 * 10:
-				resolution = 7; // < 2150
-				break;
-			case area < 15000 * 10:
-				resolution = 6; // < 15000
+				resolution = 8;
 				break;
 			default:
-				resolution = 6;
+				resolution = 7; // coarsest (h3_7 column)
 		}
 
 		return resolution;

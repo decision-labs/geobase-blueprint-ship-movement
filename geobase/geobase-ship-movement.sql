@@ -139,9 +139,6 @@ create extension if not exists h3_postgis with schema extensions cascade;
 
 ALTER TABLE aisinputfiltered
     ADD column h3_10 h3index,
-    ADD column h3_11 h3index,
-    ADD column h3_12 h3index,
-    ADD column h3_13 h3index,
     ADD column h3_9 h3index,
     ADD column h3_8 h3index,
     ADD column h3_7 h3index;
@@ -149,17 +146,11 @@ ALTER TABLE aisinputfiltered
 UPDATE aisinputfiltered
 SET
     h3_10 = h3_latlng_to_cell(geom, 10),
-    h3_11 = h3_latlng_to_cell(geom, 11),
-    h3_12 = h3_latlng_to_cell(geom, 12),
-    h3_13 = h3_latlng_to_cell(geom, 13),
     h3_9 = h3_latlng_to_cell(geom, 9),
     h3_8 = h3_latlng_to_cell(geom, 8),
     h3_7 = h3_latlng_to_cell(geom, 7);
 
 create index on aisinputfiltered(h3_10);
-create index on aisinputfiltered(h3_11);
-create index on aisinputfiltered(h3_12);
-create index on aisinputfiltered(h3_13);
 create index on aisinputfiltered(h3_9);
 create index on aisinputfiltered(h3_8);
 create index on aisinputfiltered(h3_7);
