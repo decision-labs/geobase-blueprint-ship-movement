@@ -43,6 +43,8 @@ Once you're Geobase project is created, you can manually download, clone or crea
 
 First you will need to load and process the data for the application.  You can run SQL from within the Geobase application, or you connect from your own system. Geobase includes a sample of the AIS shipping data in CSV format from 2021 for you to get going quickly. It's probably a good idea to read the SQL to see what it's going to do before you run it.
 
+The migration SQL works on PostgreSQL 15 and 17. PG17 stacks omit the TimescaleDB extension; time bucketing uses built-in `date_bin` instead of `time_bucket`.
+
 #### Option 1: Quickstart via the studio
 
 1. Go to the studio
@@ -67,7 +69,7 @@ You can copy the [SQL migration file](geobase/geobase-ship-movement.sql) from th
 4. Click Run.
 
 
-#### Option 3: Using `psql` version compatible with your Geobase project (postgres 14 or 15)
+#### Option 3: Using `psql` compatible with your Geobase project (PostgreSQL 15 or 17)
 
 Locally if you have the PostgreSQL client binaries installed, you can use psql to connect to PostgreSQL on your Geobase server and load in the SQL file.  
 
