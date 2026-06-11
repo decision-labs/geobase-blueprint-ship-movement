@@ -31,7 +31,7 @@ import {
 	aggregateHexBins,
 	animationTimeBinIndex,
 	buildHexBinsByIndex,
-	interval_val,
+	activityIntervalForLoop,
 	type HexActivityRow,
 	map_areas,
 	ports_and_things,
@@ -82,6 +82,9 @@ export default function Demo({
 	const isHexLayerVisibleRef = useRef(false);
 	const hexSyncWithTimelineRef = useRef(true);
 	const loopLengthRef = useRef(0);
+	const minTimestampRef = useRef<number | null>(null);
+	const activityIntervalRef = useRef(activityIntervalForLoop(0));
+	const [tripsLayerEpoch, setTripsLayerEpoch] = useState(0);
 	const [dataTimeRange, setDataTimeRange] = useState<{
 		start_time: string;
 		end_time: string;
@@ -105,7 +108,7 @@ export default function Demo({
 		const binIdx = animationTimeBinIndex(
 			timeOffsetSec,
 			loopLengthRef.current,
-			interval_val,
+			activityIntervalRef.current,
 		);
 		if (binIdx === hexBinIndexRef.current) return;
 		hexBinIndexRef.current = binIdx;
@@ -190,7 +193,7 @@ export default function Demo({
 
 	const tripsLayer = new MVTLayer({
 		id: "trips",
-		data: TIME_VECTOR_TILES_URL,
+		data: `${TIME_VECTOR_TILES_URL}&_=${tripsLayerEpoch}`,
 		binary: false,
 		pickable: !isDrawing,
 		minZoom: 5,
@@ -232,6 +235,12 @@ export default function Demo({
 	});
 
 	function onTileLoad(tile: any) {
+		const epochMinTs = minTimestampRef.current;
+		if (epochMinTs == null) {
+			tile.content = [];
+			return;
+		}
+
 		setIsTripsLayerLoading(true);
 		setIsLoading(false);
 
@@ -247,9 +256,7 @@ export default function Demo({
 			const ts_final = ts
 				.substring(1, ts.length - 1)
 				.split(",")
-				.map((t: string) => {
-					return parseInt(t, 10) - minTimestamp;
-				});
+				.map((t: string) => parseInt(t, 10) - epochMinTs);
 
 			// slice Multi into individual features
 			if (feature.geometry.type === "MultiLineString") {
@@ -441,7 +448,11 @@ export default function Demo({
 			while (resolution_val >= MIN_H3_RESOLUTION) {
 				const result = await supabase.rpc(
 					"activity_by_region_and_time_local",
-					{ geojson, interval_val, resolution_val },
+					{
+						geojson,
+						interval_val: activityIntervalRef.current,
+						resolution_val,
+					},
 				);
 				data = result.data;
 				error = result.error;
@@ -494,7 +505,7 @@ export default function Demo({
 			hexBinsByIndexRef.current = buildHexBinsByIndex(
 				groupedData,
 				minTimestamp,
-				interval_val,
+				activityIntervalRef.current,
 			);
 		}
 		hexBinIndexRef.current = -1;
@@ -567,7 +578,17 @@ export default function Demo({
 
 	useEffect(() => {
 		loopLengthRef.current = loopLength;
+		if (loopLength > 0) {
+			activityIntervalRef.current = activityIntervalForLoop(loopLength);
+		}
 	}, [loopLength]);
+
+	useEffect(() => {
+		minTimestampRef.current = minTimestamp;
+		if (minTimestamp != null) {
+			setTripsLayerEpoch((epoch) => epoch + 1);
+		}
+	}, [minTimestamp]);
 
 	useEffect(() => {
 		isHexLayerVisibleRef.current = isHexLayerVisible;

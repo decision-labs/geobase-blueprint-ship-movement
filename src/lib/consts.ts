@@ -15,8 +15,15 @@ export const STATIC_TIME_RANGE = {
 	end_time:   null
 };
 
-/** Time bucket for activity_by_region_and_time_local. Use shorter intervals for brief datasets. */
+/** Default for long datasets; use activityIntervalForLoop() when the timeline is shorter. */
 export const interval_val = "24 hours";
+
+/** Pick an RPC/animation bin size that yields multiple bins across the timeline. */
+export function activityIntervalForLoop(loopLengthSec: number): string {
+	if (loopLengthSec <= 6 * 3600) return "5 min";
+	if (loopLengthSec <= 48 * 3600) return "1 hour";
+	return interval_val;
+}
 
 export function intervalToSeconds(intervalVal: string): number {
 	const [valuePart, unit] = intervalVal.split(" ");

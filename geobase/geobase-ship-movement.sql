@@ -185,6 +185,9 @@ BEGIN
   poly := ST_GeomFromGeoJSON(geojson);
   resolution_actual := resolution_val;
 
+  -- Large drawn polygons can cover thousands of H3 cells. Each cell becomes one
+  -- indexed lookup below, so we step resolution down (coarser hexes, fewer cells)
+  -- until the count fits max_cells or we fail with a clear "draw smaller" error.
   LOOP
     SELECT count(*)::integer INTO cell_count
     FROM h3_polygon_to_cells(poly, resolution_actual);
@@ -211,6 +214,8 @@ BEGIN
   ) ON COMMIT DROP;
   TRUNCATE tmp_activity_hits;
 
+  -- One query per hex cell using the h3_N column index (fast). A single
+  -- WHERE h3_N IN (SELECT …) over all cells would scan the whole AIS table.
   FOR cell IN SELECT h3_polygon_to_cells(poly, resolution_actual)
   LOOP
     EXECUTE format(
