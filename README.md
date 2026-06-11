@@ -134,7 +134,9 @@ You should see something like this animation. Click on the area names to move th
   <img alt="Blueprint animation of running application showing ship trails" src="geobase/media/animation.gif">
 </picture>
 
-You can draw a polygon to query the data to see the activity of the ships as hexagons on the map. Click the "Draw to view activity" button and start drawing a polygon on the map, release the mouse and the hexagons should appear. You can clear these the hexagons by pressing ESC or by clicking the "Clear Hexagons" button.  
+You can draw a freehand loop to query ship activity as H3 hexagons. Click **Draw area**, drag on the map, and release. Hex colors use a Viridis scale (linear, log, or percentile — see the legend). Toggle **Sync pings with routes** to animate hex bins with the trip timeline, or show totals across the range. Press **Esc** or click **Clear hexagons** to reset.
+
+For short datasets, set a smaller `interval_val` in `src/lib/consts.ts` (e.g. `"5 min"`).  
 
  <picture>
   <img alt="Blueprint animation of running application showing the h3 query" src="geobase/media/ships_query.gif">
@@ -162,7 +164,7 @@ The database migration sets up the following tables:
 ### Functions
 
 1. `public.ships_fn()`: Create vector tiles (mvt) with embedded timestamps, to be served by the Geobase tile server. This function powers the animated ship movements on the map. 
-2. `public.activity_by_region_and_time_local()`: Queries the AIS table with a geoJSON polygon, time interval and map resolution and returns the a timestamp, the h3 hexagon id and count of ship events from the Aisinputfiltered table for that area. This function is used when querying the map by drawing on it.
+2. `public.activity_by_region_and_time_local()`: Queries AIS activity for a drawn polygon using per-cell H3 index lookups (auto-coarsens large areas, 30s timeout). Returns time bucket, hex id, and ping count.
 3. `public.get_ships_time_range()`: Returns the minimum and maximum timestamps from the ships table. This is used to set the time range for the animation control on the map. You can override this time range data by setting the start_date and end_date in STATIC_TIME_RANGE in the `lib/consts.ts` file.
 
 

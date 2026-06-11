@@ -155,30 +155,91 @@ create index on aisinputfiltered(h3_9);
 create index on aisinputfiltered(h3_8);
 create index on aisinputfiltered(h3_7);
 
--- activity_by_region_and_time_local function
-CREATE OR REPLACE FUNCTION public.activity_by_region_and_time_local(geojson text, interval_val text, resolution_val integer)
- RETURNS TABLE(time_int timestamp with time zone, hexid text, count bigint)
- SECURITY DEFINER
- SET search_path TO 'extensions', 'public', 'pg_temp'
+CREATE INDEX IF NOT EXISTS aisinputfiltered_geom_idx
+  ON public.aisinputfiltered USING gist (geom);
+
+-- Per-cell index lookups (avoids full-table scan); auto-coarsens when polygon is large.
+CREATE OR REPLACE FUNCTION public.activity_by_region_and_time_local(
+  geojson text,
+  interval_val text,
+  resolution_val integer
+)
+RETURNS TABLE(time_int timestamptz, hexid text, count bigint)
+SECURITY DEFINER
+SET search_path TO 'extensions', 'public', 'pg_temp'
+SET statement_timeout TO '30s'
+LANGUAGE plpgsql
 AS $function$
+DECLARE
+  poly geometry;
+  cell extensions.h3index;
+  cell_count integer;
+  h3_col text;
+  resolution_actual integer;
+  max_cells constant integer := 3000;
 BEGIN
-  RETURN QUERY EXECUTE format('
-    WITH cells AS (
-        SELECT h3_polygon_to_cells(ST_GeomFromGeoJSON(%L), %s) AS hexid
+  IF resolution_val < 7 OR resolution_val > 10 THEN
+    RAISE EXCEPTION 'resolution_val must be between 7 and 10';
+  END IF;
+
+  poly := ST_GeomFromGeoJSON(geojson);
+  resolution_actual := resolution_val;
+
+  -- Large drawn polygons can cover thousands of H3 cells. Each cell becomes one
+  -- indexed lookup below, so we step resolution down (coarser hexes, fewer cells)
+  -- until the count fits max_cells or we fail with a clear "draw smaller" error.
+  LOOP
+    SELECT count(*)::integer INTO cell_count
+    FROM h3_polygon_to_cells(poly, resolution_actual);
+
+    IF cell_count <= max_cells THEN
+      EXIT;
+    END IF;
+
+    resolution_actual := resolution_actual - 1;
+
+    IF resolution_actual < 7 THEN
+      RAISE EXCEPTION
+        'Draw a smaller area (too many hex cells even at res 7: got %).',
+        cell_count;
+    END IF;
+  END LOOP;
+
+  h3_col := format('h3_%s', resolution_actual);
+
+  CREATE TEMP TABLE IF NOT EXISTS tmp_activity_hits (
+    bucket timestamptz NOT NULL,
+    hexid text NOT NULL,
+    cnt bigint NOT NULL
+  ) ON COMMIT DROP;
+  TRUNCATE tmp_activity_hits;
+
+  -- One query per hex cell using the h3_N column index (fast). A single
+  -- WHERE h3_N IN (SELECT …) over all cells would scan the whole AIS table.
+  FOR cell IN SELECT h3_polygon_to_cells(poly, resolution_actual)
+  LOOP
+    EXECUTE format(
+      'INSERT INTO tmp_activity_hits (bucket, hexid, cnt)
+       SELECT date_bin($1, t AT TIME ZONE ''UTC'', TIMESTAMP ''2000-01-01''),
+              $2,
+              count(*)::bigint
+       FROM public.aisinputfiltered
+       WHERE %I = $3
+       GROUP BY 1',
+      h3_col
     )
-    SELECT 
-      date_bin(INTERVAL %L, t AT TIME ZONE ''UTC'', TIMESTAMP ''2000-01-01'') AS time_int,
-      h3_%s::text AS hexid,
-      count(*) AS count 
-    FROM aisinputfiltered
-    WHERE h3_%s IN (SELECT hexid FROM cells)
-    GROUP BY h3_%s, time_int
-    HAVING count(*) > 5
-    ', geojson, resolution_val::text, interval_val, resolution_val::text, resolution_val::text, resolution_val::text
-  );
+    USING interval_val::interval, cell::text, cell;
+  END LOOP;
+
+  RETURN QUERY
+  SELECT h.bucket, h.hexid, h.cnt
+  FROM tmp_activity_hits h
+  WHERE h.cnt > 1;
 END;
-$function$
-LANGUAGE plpgsql;
+$function$;
+
+GRANT EXECUTE ON FUNCTION public.activity_by_region_and_time_local(text, text, integer)
+  TO anon, authenticated, service_role;
 
 DROP TABLE IF EXISTS AISInput;
 

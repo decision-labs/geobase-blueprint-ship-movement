@@ -1,5 +1,5 @@
 {
-  "name": "react",
+  "name": "geobase-ship-movement",
   "version": "1.0.0",
   "description": "",
   "keywords": [],
@@ -16,6 +16,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "deck.gl": "^9.0.29",
+    "lucide-react": "^1.17.0",
     "maplibre-gl": "^4.1.2",
     "moment": "^2.30.1",
     "moment-timezone": "^0.5.45",
